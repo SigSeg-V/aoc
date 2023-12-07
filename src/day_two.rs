@@ -1,6 +1,8 @@
+use std::{usize, collections::HashMap};
+
 use phf::phf_map;
 
-pub fn find_invalid_games(inp: Box<str>) -> usize {
+pub fn find_valid_games(inp: Box<str>) -> usize {
     static COLOR_COUNT: phf::Map<&'static str, usize> = phf_map! {
         "blue" => 14,
         "green" => 13,
@@ -33,6 +35,42 @@ pub fn find_invalid_games(inp: Box<str>) -> usize {
     total
 }
 
+pub fn sq_min_games(inp: Box<str>) -> usize {
+    inp.split("\n").fold(0, |acc, s| {
+        acc + fold_to_power(s)
+    })
+}
+
+fn fold_to_power(inp: &str) -> usize {
+    inp
+    .split(": ")
+    .nth(1)
+    .unwrap()
+    .split("; ")
+    .fold(HashMap::from([
+            ("red", 0),
+            ("blue", 0),
+            ("green", 0),
+        ]), |mut acc, pull| {
+        let counts = pull.split(", ")
+        .map(|kind| {
+          let number = kind.split(" ").nth(0).unwrap().parse::<usize>().unwrap();
+          let color = kind.split(" ").nth(1).unwrap();
+
+          (color, number)
+        })
+        .collect::<HashMap<&str, usize>>(); 
+
+        counts.into_iter().for_each(|(k, v)| {
+            if v > *acc.get(k).unwrap() {
+                acc.insert(k, v);
+            }
+        });
+        acc
+    })
+    .into_iter().fold(1, |acc, (_, v)| acc * v)
+}
+
 #[cfg(test)]
 mod tests {
     use std::error::Error;
@@ -40,9 +78,18 @@ mod tests {
     use crate::common;
 
     #[test]
-    fn max_elf() -> Result<(), Box<dyn Error + 'static>> {
+    fn part_1() -> Result<(), Box<dyn Error + 'static>> {
         let data = common::read_file("data/day_two.txt")?;
-        assert_eq!(8, super::find_invalid_games(data));
+        assert_eq!(8, super::find_valid_games(data));
+        Ok(())
+    }
+
+    #[test]
+    fn part_2() -> Result<(), Box<dyn Error + 'static>> {
+        let data = common::read_file("data/day_two.txt")?;
+        assert_eq!(2286, super::sq_min_games(data));
+
+        // assert_eq!(48, super::fold_to_power("Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green"));
         Ok(())
     }
 }
