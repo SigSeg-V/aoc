@@ -68,7 +68,8 @@ fn fold_to_power(inp: &str) -> usize {
         });
         acc
     })
-    .into_iter().fold(1, |acc, (_, v)| acc * v)
+    .into_iter()
+    .fold(1, |acc, (_, v)| acc * v)
 }
 
 #[cfg(test)]
